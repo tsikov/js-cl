@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+	<title>Flatland</title>
+
+	<script src="jquery.js"></script>
+	<script src="jquery.flot.js"></script>
+	<script src="ga.js"></script>
+  <!--<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">-->
+  <!--<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>-->
+
+</head>
+<body>
+  <div id="stream" style="width:600px;height:300px;"></div>
+  <div id="text">
+    <table border="1">
+    <tr>
+      <td>Variables</td>
+      <td>Mutation Strategies</td>
+      <td>Crossover Techniques</td>
+      <td>Fitness Function</td>
+      <td>Selection Strategies</td>
+    </tr>
+      <tr>
+        <td>
+          <input type="text" name="mutation-rate" id="mutation-rate" value="0.15" />mutation rate<br>
+          <input type="text" name="crossover-rate" id="crossover-rate" value="0.5" />crossover rate<br />
+          <input type="text" name="elitist-count" id="elitist-count" value="0" />elitist count<br>
+          <input type="text" name="iterations" id="iterations" value="300" />iterations<br>
+          <input type="text" name="chromosome-length" id="chromosome-length" value="35" />chromosome length<br>
+          <input type="text" name="population-count" id="population-count" value="100" />population count<br >
+        </td>
+        <td>
+          <input type="radio" name="mutation" value="fmr" checked>FMR<br>
+          <input type="radio" name="mutation" value="dmr">DMR<br>
+          <input type="radio" name="mutation" value="cplo">CPLO<br>
+          <input type="radio" name="mutation" value="iamr">IAMR<br>
+          <input type="text" name="iamr-k1" id="iamr-k1" value="0.5"/><br>
+          <input type="text" name="iamr-k2" id="iamr-k2" value="0.5"/><br>
+        </td>
+        <td>
+          <input type="radio" name="crossover" value="opc" checked>OPC<br>
+          <input type="radio" name="crossover" value="rog-1">ROG 1<br>
+          <input type="radio" name="crossover" value="rog-2">ROG 2
+        </td>
+        <td>
+          <input type="radio" name="fitness" value="sum-product" checked>sum and product<br>
+          <input type="radio" name="fitness" value="custom">custom
+          <hr>
+          <input type="checkbox" name="memoization" id="memoization" value="true"/>Memoization<br>
+        </td>
+        <td>
+          <input type="radio" name="selection" value="rws" checked>RWS<br>
+          <input type="radio" name="selection" value="sus">SUS<br>
+          <input type="radio" name="selection" value="tour">Tour<br>
+          <input type="text" name="tour-s" id="tour-s" value="3"/><br>
+          <input type="radio" name="selection" value="trunc">Trunc<br>
+          <input type="radio" name="selection" value="rand">Random<br>
+        </td>
+      </tr>
+    </table>
+
+    <button type="button" onclick="start()">Start</button>
+    <button type="button" onclick="updateData()">Update</button>
+    <button type="button" onclick="stop()">Stop</button>
+    <input type="checkbox" name="HDP" id="HDP" value="true" />HDP
+    <input type="checkbox" name="live" id="live" value="true"/>Live<br>
+    <textarea name="result" id="result" rows="3" cols="40">When you click start, the fittest individual will be shown here.</textarea>
+  </div>
+  <h1>Instructions</h1>
+
+  <h2>Variables</h2>
+    <h4>Mutation Rate</h4>
+      Mutation occurs when a crossover is performed. The mutation rate controls how big is the chance of a
+      mutation occuring on every single bit of the chromosome. The general rule is that the rate should be
+      between 0.002 and 0.05. If you increase the mutation rate - the more the algorithm is traversing the
+      search space. If you decrease it - the faster the algorithm converges. This variable is active only when Fixed Mutation Rate (FMR) strategy is used.
+      <a href="http://en.wikipedia.org/wiki/Mutation_(genetic_algorithm)">http://en.wikipedia.org/wiki/Mutation_(genetic_algorithm)</a>
+    <h4>Crossover Rate</h4>
+      Good default value for the crossover rate is between 0.5 and 0.65. Ususally 0.6.
+      <a href="http://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)">http://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)</a>
+    <h4>Elitist Count</h4>
+      <a href="http://en.wikipedia.org/wiki/Genetic_algorithm#Elitism">http://en.wikipedia.org/wiki/Genetic_algorithm#Elitism</a>
+      If 0 - no elitism is performed.
+    <h4>Iterations</h4>
+      How many iterations should the algorithm perform before stopping? (Not applicable in "live mode").
+    <h4>Chromosome Length</h4>
+      How many bits is the chromosome length. Pretty self-explanatory :)
+    <h4>Population Count</h4>
+      How many individiuals are there in the gene pool?
+  <h2>Mutation Strategies</h2>
+     <h4>Fixed Mutation Rate (FMR)</h4>
+        The mutation rate doesn't change.
+     <h4>Dynamic Mutation Rate (DMR)</h4>
+        The mutation rate changes as the algorithm progresses. This can be vary helpful if you don't know what the mutation rate should be. It usually performs just as
+        well as the FMR with the added benefit that you don't have to fine-tune the values. The formula is: 
+     <h4>CPLO</h4>
+        When a crossover is performed the mutation rate for parents is 0.1 and the mutation rate for children is 0.001.
+     <h4>Individually adaptive mutation rate (IAMR)</h4>
+        The mutation rate is different for each individual. The fitness of the individual, the average fitness of the population, the fittest individual's fitness and two
+        other variables are taken into account. (I couldn' find information about them. If you can: contact me.) The formula is:
+        mr = f &gt; favg ? k1*(fmax - f)/(fmax - favg) : k2. You can read more about IAMR here.
+
+        <br><i>The provided variables are for k1 and k2</i>
+  <h2>Crossover Techniques</h2>
+    <h4>One-point crossover (OPC)</h4>
+      This is the standert crossover. "A single crossover point on both parents' organism strings is selected. All data beyond that point in either organism string is 
+      swapped between the two parent organisms." <a href="http://en.wikipedia.org/wiki/Crossover_(genetic_algorithm)#One-point_crossover">wiki</a>
+    <h4>(Random Offspring Generation) ROG1</h4>
+      If the parents selected for crossover are the same, one of the children is an offspring and the other is a randomly generated individual.
+      It was proposed <a href="http://repositorium.sdum.uminho.pt/bitstream/1822/4291/1/P078.pdf">here</a>.
+    <h4>(Random Offspring Generation) ROG2</h4>
+      If the parents selected for crossover are the same, both the children are randomly generated individuals.
+      It was proposed <a href="http://repositorium.sdum.uminho.pt/bitstream/1822/4291/1/P078.pdf">here</a>.
+
+      <br>
+      <br>
+      <br>
+    To be implemeted:<br>
+    - Two-point crossover<br>
+    - Uniform crossover.<br>
+    - Three parent crossover.<br>
+    - Greedy crossover.<br>
+    - etc...
+  <h2>Selection Strategies</h2>
+    <h4>Roulette Wheel Selection / Fitness proportionate selection (RWS)</h4>
+      <a href="http://en.wikipedia.org/wiki/Fitness_proportionate_selection">http://en.wikipedia.org/wiki/Fitness_proportionate_selection</a>
+    <h4>Tournament selection</h4>
+      <a href="http://en.wikipedia.org/wiki/Tournament_selection">http://en.wikipedia.org/wiki/Tournament_selection</a>
+      Tournament selection is a method of selecting an individual from a population of individuals in a genetic algorithm. Tournament selection involves running several
+      "tournaments" among a few individuals chosen at random from the population. The winner of each tournament (the one with the best fitness) is selected for crossover.
+      Selection pressure is easily adjusted by changing the tournament size. If the tournament size is larger, weak individuals have a smaller chance to be selected.
+      <br>
+      <i>A value for the tournament size is provided. Use it to fine-tune the convergence rate.</i>
+    <h4>Stochastic Universal Sampling (SUS)</h4>
+      From <a href="http://en.wikipedia.org/wiki/Stochastic_universal_sampling">wikipedia</a>: SUS is a development of fitness proportionate selection (FPS) which exhibits no bias and minimal spread. Where FPS chooses several solutions from
+      the population by repeated random sampling, SUS uses a single random value to sample all of the solutions by choosing them at evenly spaced intervals. This gives
+      weaker members of the population (according to their fitness) a chance to be chosen and thus reduces the unfair nature of fitness-proportional selection methods.
+      Other methods like roulette wheel can have bad performance when a member of the population has a really large fitness in comparison with other members. Using a
+      comb-like ruler, SUS starts from a small random number, and chooses the next candidates from the rest of population remaining, not allowing the fittest members to
+      saturate the candidate space.
+    <h4>Truncation Selection</h4>
+      Rarely used selection method. <a href="http://en.wikipedia.org/wiki/Truncation_selection">http://en.wikipedia.org/wiki/Truncation_selection</a>
+    <h4>Random Selection</h4>
+      I don't know why anybody would use this. It selects random individuals from the gene pool without any consideration of their fitness. The chance for convergence is...
+      slim...
+  <h2>Fitness Function</h2>
+    Currently an example function is provided via the GUI. If you want to use the GA for your own purposses you have to write your own custom fitness function. To do that
+    open the console and assign the fitness function to a variagle with the name customFn. The function must return a value between (0 1] where 1 denotes that the chromosome
+    is an answer and the closed the fitness is to zero - the furthest the answer is from optimal value. You can easily acceve this with the formula 1/(score+1).
+
+    <i>Use the <b>memoization</b> flag if your fitness function is computationally heavy.</i>
+  <h2>Live mode</h2>
+    If "live mode" is on the algorithm will run indefinetly unless stopped by the user with the "stop" button. Be gentle to your computer.
+  <h2>Hamming Distance of Population (HDP)</h2>
+    The HDP measures the overall diversity of the population. The flag is turned off by default because it slows down the computation time, but can be very useful
+    for finding the best strategy for your problem.
+</body>
+</html>
+

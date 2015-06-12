@@ -1,0 +1,17 @@
+SDT
+pyramid
+scrollers
+PRGA
+
+counting ones problem
+knupsack problem
+
+stats to track:
+
+execution time
+hdp
+best
+average
+
+insert results into database for stats
+
